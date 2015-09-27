@@ -2,13 +2,13 @@
 
 Hooray! A module for that mobile menu that's copied everywhere. This was originally written for SilverStripe 2.4, so is in dire need of a rethink and may be completely misguided anyway.
 
-The intent of this code originally was to build a full menu tree with only two database queries, instead of running n+1 queries by nesting `SiteTree::Children()` calls in templates.
+The original intent of this code was to build a full menu tree with just two database queries, instead of running n+1 queries by nesting `SiteTree::Children()` calls in templates.
 
-  // Todo: love this code and make it use features available in SilverStripe 3
+    // Todo: love this code and make it use features available in SilverStripe 3
 
 ## Template for now...
 
-The template that's been thrown around with this code an needs to be refactored to be reusable or removed in favour of a JSON and/or AJAX solution:
+Here's the template that's been thrown around with this code. It really needs to be refactored to be reusable, or removed entirely in favour of a JSON solution.
 
 ```html
 <div class="mnv t-light" data-menu data-menu-default="1">
