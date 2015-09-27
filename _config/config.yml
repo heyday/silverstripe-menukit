@@ -1,0 +1,3 @@
+MobileMenuExtension:
+  source_menu_set: MobileNav
+  exclude_pagetypes: []

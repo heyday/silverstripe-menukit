@@ -13,16 +13,11 @@ class MobileMenuExtension extends DataExtension
             return $this->_cachedNavigationTree;
         }
 
-        // Get ID and ParentID for all pages
-        $filter = "ClassName != 'NewsPage' AND ShowInMenus = 1";
-        $table = 'SiteTree' . (Versioned::current_stage() == 'Live' ? '_Live' : '');
-        $sql = new SQLQuery('ID, ParentID', $table, $filter);
-        $siteTree = $sql->execute()->map();
+        $siteTree = $this->getMenuPageIDs();
 
         // Collate IDs of top-level parents
-        // The menu set named here should be the same as the one named in Page_Narrow_Menu.ss
         $menu = array();
-        $menuSet = DataObject::get_one('MenuSet', "Name = 'MobileNav'");
+        $menuSet = MenuSet::get()->filter('Name', $this->stat('source_menu_set'));
 
         if (!$menuSet) {
             return null;
@@ -52,8 +47,7 @@ class MobileMenuExtension extends DataExtension
         }
 
         // Fetch actual pages
-        $ids = implode(',', $menu);
-        $pages = DataObject::get('SiteTree', 'ID IN ('.$ids.')', 'Sort');
+        $pages = SiteTree::get()->filter('ID', $menu);
         return $this->_cachedNavigationTree = $pages->toArray();
     }
 
@@ -95,5 +89,17 @@ class MobileMenuExtension extends DataExtension
         }
 
         return $tree;
+    }
+
+    /**
+     * Get a map of page IDs to ParentIDs for all candidate pages
+     *
+     * @return int[] => int
+     */
+    protected function getMenuPageIDs()
+    {
+        return SiteTree::get()
+            ->exclude('ClassName', $this->stat('exclude_pagetypes'))
+            ->map('ID, ParentID');
     }
 }
