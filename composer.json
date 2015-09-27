@@ -1,0 +1,13 @@
+{
+    "name": "heyday/silverstripe-mobilemenu",
+    "description": "Reusable mobile menu tree for SilverStripe",
+    "type": "silverstripe-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stephen Holdaway",
+            "email": "stephen@heyday.co.nz"
+        }
+    ],
+    "require": {}
+}
