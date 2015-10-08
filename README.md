@@ -10,6 +10,51 @@ The original intent of this code was to build a full menu tree with just two dat
 
 Here's the template that's been thrown around with this code. It really needs to be refactored to be reusable, or removed entirely in favour of a JSON solution.
 
+This package provides some basic components for efficiently pulling large portions of the SiteTree out of the database. This can be used with something like `heyday/silverstripe-menumanager` or just pulling top level pages in a site to expose a tree for rendering in a template:
+
+```php
+class Page extends Page implements TemplateGlobalProvider
+{
+    // ...
+
+    public static function get_template_global_variables()
+    {
+        return array(
+            'MobileMenuTree'
+        );
+    }
+
+    public static function getMobileMenuTree()
+    {
+        static $tree = null;
+
+        if (!$tree) {
+            $resolver = new DataObjectTreeResolver();
+
+            // Use multiple menus for the source of root items
+            $rootIds = MenuItem::get()
+                ->filter(array(
+                    'MenuSet.Name' => array(
+                        'MainMenu',
+                        'TopMenu'
+                    )
+                ))
+                ->column('PageID');
+
+            // Select all pages that are allowed to show in the menu
+            $pages = Page::get()
+                ->exlcude('ClassName', array(
+                    'NewsArticle'
+                ));
+
+            $tree = $resolver->getTree($rootIds, $pages);
+        }
+
+        return $tree;
+    }
+}
+```
+
 ```html
 <div class="mnv t-light" data-menu data-menu-default="1">
 	<div class="mnv-page" data-menu-id="1">
