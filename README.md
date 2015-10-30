@@ -1,96 +1,47 @@
-# (Faster) mobile menu
+# SilverStripe MenuKit
 
-Hooray! A module for that mobile menu that's copied everywhere. This was originally written for SilverStripe 2.4, so is in dire need of a rethink and may be completely misguided anyway.
+MenuKit is a set of classes for SilverStripe that allow traversal of DataObject/Page trees with two instead of n+1 queries.
 
-The original intent of this code was to build a full menu tree with just two database queries, instead of running n+1 queries by nesting `SiteTree::Children()` calls in templates.
+## Installation
 
-    // Todo: love this code and make it use features available in SilverStripe 3
+```
+$ composer require silverstripe-menukit
+```
 
-## Template for now...
+## Usage
 
-Here's the template that's been thrown around with this code. It really needs to be refactored to be reusable, or removed entirely in favour of a JSON solution.
+### Example: exposing the site tree as JSON in templates
 
-This package provides some basic components for efficiently pulling large portions of the SiteTree out of the database. This can be used with something like `heyday/silverstripe-menumanager` or just pulling top level pages in a site to expose a tree for rendering in a template:
+If you wanted to build a traversable menu in JavaScript, you might want to expose your site tree as JSON in templates. That could look something like this:
 
 ```php
-class Page extends Page implements TemplateGlobalProvider
-{
-    // ...
+use \Heyday\SilverStripe\MenuKit\NestedMenuBuilder;
 
+class JsonMenuProvider implements TemplateGlobalProvider
+{
     public static function get_template_global_variables()
     {
         return array(
-            'MobileMenuTree'
+            'SiteTreeJSON' => 'getSiteTreeJSON'
         );
     }
 
-    public static function getMobileMenuTree()
+    public static function getSiteTreeJSON()
     {
-        static $tree = null;
+    	// Pages that are allowed to show in the menu
+    	// If you wanted to exclude news articles from the menu, you'd filter that here
+        $candidatePages = SiteTree::get();
 
-        if (!$tree) {
-            $resolver = new DataObjectTreeResolver();
+        // Pages that should show up at the root level of the menu
+        $rootPages = SiteTree::get()
+        ->filter([
+            'ParentID' => 0,
+            'ShowInMenu' => 1
+        ]);
 
-            // Use multiple menus for the source of root items
-            $rootIds = MenuItem::get()
-                ->filter(array(
-                    'MenuSet.Name' => array(
-                        'MainMenu',
-                        'TopMenu'
-                    )
-                ))
-                ->column('PageID');
+        $menu = new NestedMenuBuilder($rootPages, $candidatePages);
 
-            // Select all pages that are allowed to show in the menu
-            $pages = Page::get()
-                ->exlcude('ClassName', array(
-                    'NewsArticle'
-                ));
-
-            $tree = $resolver->getTree($rootIds, $pages);
-        }
-
-        return $tree;
+        return json_encode($menu->toNestedArray());
     }
 }
-```
-
-```html
-<div class="mnv t-light" data-menu data-menu-default="1">
-	<div class="mnv-page" data-menu-id="1">
-		<ul class="nav">
-			<% loop $MenuSet('MobileNav').MenuItems %>
-				<li class="nav-item">
-					<% if $Children %>
-						<a href="$Link" class="mnv-down" data-menu-show="$PageID">$MenuTitle</a>
-					<% else %>
-						<a class="mnv-text" href="$Link">$MenuTitle</a>
-					<% end_if %>
-				</li>
-			<% end_loop %>
-		</ul>
-	</div>
-
-	<% loop $NavigationTreeOptimised %>
-		<div class="mnv-page" data-menu-id="$ID">
-			<ul class="nav">
-				<% if $MenuParent %>
-					<li class="nav-item"><a href="$MenuParent.Link" class="mnv-back" data-menu-back="$ParentID">$MenuParent.MenuTitle</a></li>
-				<% else %>
-					<li class="nav-item"><a href="/" class="mnv-back" data-menu-back="1">Home</a></li>
-				<% end_if %>
-					<li class="nav-item"><a href="$Link" class="mnv-text">$MenuTitle</a></li>
-				<% loop $MenuChildren %>
-					<li class="nav-item">
-						<% if $HasChildren %>
-							<a href="$Link" class="mnv-down mnv-child" data-menu-show="$ID">$MenuTitle</a>
-						<% else %>
-							<a href="$Link" class="mnv-text mnv-child">$MenuTitle</a>
-						<% end_if %>
-					</li>
-				<% end_loop %>
-			</ul>
-		</div>
-	<% end_loop %>
-</div>
 ```

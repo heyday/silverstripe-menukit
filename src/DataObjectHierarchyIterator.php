@@ -1,6 +1,12 @@
 <?php
 
-class DataObjectHierarchy implements RecursiveIterator
+namespace Heyday\SilverStripe\MenuKit;
+
+use \ArrayList;
+use \DataObject;
+use \RecursiveIterator;
+
+class DataObjectHierarchyIterator implements RecursiveIterator
 {
     /**
      * @var int[]
@@ -59,7 +65,11 @@ class DataObjectHierarchy implements RecursiveIterator
 
     public function valid()
     {
-        return isset($this->rootIds[$this->index]);
+        if ($this->idMap === null) {
+            $this->populateMaps();
+        }
+
+        return isset($this->rootIds[$this->index]) && isset($this->idMap[$this->key()]);
     }
 
     public function rewind()
@@ -86,7 +96,7 @@ class DataObjectHierarchy implements RecursiveIterator
             return $record->ID;
         }, $this->parentMap[$this->key()]);
 
-        $iterator = new DataObjectHierarchy($childIds, $this->records);
+        $iterator = new DataObjectHierarchyIterator($childIds, $this->records);
         $iterator->setMaps($this->parentMap, $this->idMap);
 
         return $iterator;
@@ -129,6 +139,5 @@ class DataObjectHierarchy implements RecursiveIterator
 
             $this->parentMap[$record->ParentID][] = $record;
         }
-
     }
 }

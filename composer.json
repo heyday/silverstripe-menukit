@@ -1,7 +1,6 @@
 {
-    "name": "heyday/silverstripe-mobilemenu",
-    "description": "Reusable mobile menu tree for SilverStripe",
-    "type": "silverstripe-module",
+    "name": "heyday/silverstripe-menukit",
+    "description": "Tree utilities for DataObjects in SilverStripe",
     "license": "MIT",
     "authors": [
         {
@@ -9,5 +8,10 @@
             "email": "stephen@heyday.co.nz"
         }
     ],
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Heyday\\SilverStripe\\MenuKit\\": "src/"
+        }
+    }
 }
