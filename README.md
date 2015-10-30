@@ -36,7 +36,7 @@ class JsonMenuProvider implements TemplateGlobalProvider
         $rootPages = SiteTree::get()
         ->filter([
             'ParentID' => 0,
-            'ShowInMenu' => 1
+            'ShowInMenus' => 1
         ]);
 
         $menu = new NestedMenuBuilder($rootPages, $candidatePages);
